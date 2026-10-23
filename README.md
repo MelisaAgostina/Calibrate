@@ -120,14 +120,15 @@ En `docs/evidence/`: salida de `pytest`, versiones, el procedimiento de reinicio
 - **Adaptación específica con evidencia de uso**: la regla de `PROGRESS.md`. Su historial en git muestra una actualización por tarea (hecho / decisiones / siguiente).
 - **Contexto entregado al agente**: `docs/PLAN.md`, la especificación del README y las pruebas ya escritas.
 - **Contexto excluido**: transcripciones completas de chats, datos reales de estudiantes, credenciales.
-- **Aprobaciones realmente concedidas**: todas las aprobaciones fueron manuales, de manera que cada archivo generado en los 6 pasos fue revisado para constatar que cumplan con las funciones pedidas.
+- **Aprobaciones realmente concedidas**: las aprobaciones fueron manuales para lo referedo a desarrollo de código e instalaciones, pytest y funciones de git de lectura aprobadas automáticamente, commit/push/pull manual.
 - **Qué se revisó antes de aceptar**: se revisó: codigo fuente, tests, salidas en .txt, .gitignore, reglas.
 
 ## 4. Decisiones y episodios
 
 - Decisiones y supuestos: tabla en `docs/PLAN.md` sección 1 (lenguaje, SQLite, zona fija, intervalos semiabiertos, límites de 8 h y 90 días, transacción, `reset --yes` que re-siembra sin borrar unidades).
 - Cambios de especificación: commits aparte con el motivo en el mensaje (historial recuperable).
-- Episodios de delegación: _(pendiente: se redactan en `docs/episodes.md`, con casos reales)_
+- Registro completo de decisiones con su origen (humana o del agente): `docs/decisions.md`.
+- Tres episodios de delegación reales (especificación, pruebas primero del choque de intervalos, persistencia/cancelación con un fallo real del agente): `docs/episodes.md`.
 
 <div align="center">
 <img width="450" height="450" alt="giphy" src="https://github.com/user-attachments/assets/8f7c4572-fde6-4d23-867d-177865747169" />
