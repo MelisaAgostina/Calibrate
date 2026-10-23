@@ -1,0 +1,137 @@
+Comandos utilizados:
+python -m pytest -v
+
+$env:PYTHONPATH = "src"
+$env:CALIBRATE_DB = "$env:TEMP\restart.db"
+Remove-Item $env:CALIBRATE_DB -ErrorAction SilentlyContinue
+$D = (Get-Date).AddDays(10).ToString("yyyy-MM-dd")
+
+python -m calibrate.cli init
+python -m calibrate.cli book --unit MIC-01 --requester "Ana Perez" --start "$D 10:00" --end "$D 11:00"
+python -m calibrate.cli book --unit MIC-02 --requester "Luis Gomez" --start "$D 10:00" --end "$D 11:00"
+python -m calibrate.cli cancel --id 2
+python -m calibrate.cli list
+python -m calibrate.cli list --all
+python -m calibrate.cli availability --unit MIC-01 --start "$D 10:30" --end "$D 11:30"
+python -m calibrate.cli availability --unit MIC-02 --start "$D 10:30" --end "$D 11:30"
+python -m calibrate.cli book --unit MIC-01 --requester "Luis Gomez" --start "$D 10:30" --end "$D 11:30"
+python -m calibrate.cli book --unit MIC-02 --requester "Luis Gomez" --start "$D 10:00" --end "$D 11:00"
+python -m calibrate.cli cancel --id 2
+python -m calibrate.cli reset
+python -m calibrate.cli reset --yes
+python -m calibrate.cli list --all
+
+
+Salida obtenidas:
+PS C:\Users\melis\Calibrate> python -m pytest -v
+============================================ test session starts =============================================
+platform win32 -- Python 3.10.11, pytest-9.1.1, pluggy-1.7.0 -- C:\Users\melis\AppData\Local\Programs\Python\Python310\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\melis\Calibrate
+configfile: pytest.ini
+testpaths: tests
+collected 65 items
+
+tests/test_domain.py::test_overlap_partial PASSED                                                       [  1%]
+tests/test_domain.py::test_overlap_is_symmetric PASSED                                                  [  3%]
+tests/test_domain.py::test_overlap_contained_and_identical PASSED                                       [  4%]
+tests/test_domain.py::test_consecutive_intervals_do_not_overlap PASSED                                  [  6%]
+tests/test_domain.py::test_disjoint_intervals_do_not_overlap PASSED                                     [  7%]
+tests/test_domain.py::test_parse_valid_datetime PASSED                                                  [  9%]
+tests/test_domain.py::test_parse_invalid_datetime[2030-02-30 10:00] PASSED                              [ 10%]
+tests/test_domain.py::test_parse_invalid_datetime[2030-06-10 25:00] PASSED                              [ 12%]
+tests/test_domain.py::test_parse_invalid_datetime[2030-06-10 10:60] PASSED                              [ 13%]
+tests/test_domain.py::test_parse_invalid_datetime[2030-06-10] PASSED                                    [ 15%]
+tests/test_domain.py::test_parse_invalid_datetime[10/06/2030 10:00] PASSED                              [ 16%]
+tests/test_domain.py::test_parse_invalid_datetime[] PASSED                                              [ 18%]
+tests/test_domain.py::test_parse_invalid_datetime[not a date] PASSED                                    [ 20%]
+tests/test_domain.py::test_valid_interval_accepted PASSED                                               [ 21%]
+tests/test_domain.py::test_start_equal_to_end_rejected PASSED                                           [ 23%]
+tests/test_domain.py::test_start_after_end_rejected PASSED                                              [ 24%]
+tests/test_domain.py::test_past_start_rejected PASSED                                                   [ 26%]
+tests/test_domain.py::test_exactly_8_hours_accepted PASSED                                              [ 27%]
+tests/test_domain.py::test_more_than_8_hours_rejected PASSED                                            [ 29%]
+tests/test_domain.py::test_start_exactly_90_days_ahead_accepted PASSED                                  [ 30%]
+tests/test_domain.py::test_start_beyond_90_days_rejected PASSED                                         [ 32%]
+tests/test_domain.py::test_blank_requester_rejected[] PASSED                                            [ 33%]
+tests/test_domain.py::test_blank_requester_rejected[   ] PASSED                                         [ 35%]
+tests/test_domain.py::test_blank_requester_rejected[\t\n] PASSED                                        [ 36%]
+tests/test_domain.py::test_requester_is_trimmed PASSED                                                  [ 38%]
+tests/test_persistence.py::test_new_service_on_same_db_sees_active_and_cancelled PASSED                 [ 40%]
+tests/test_persistence.py::test_booked_slot_still_blocks_after_restart PASSED                           [ 41%]
+tests/test_persistence.py::test_persistence_across_separate_cli_runs PASSED                             [ 43%]
+tests/test_persistence.py::test_cli_reset_requires_confirmation PASSED                                  [ 44%]
+tests/test_service.py::test_valid_booking_is_active PASSED                                              [ 46%]
+tests/test_service.py::test_requester_is_stored_trimmed PASSED                                          [ 47%]
+tests/test_service.py::test_overlapping_booking_rejected PASSED                                         [ 49%]
+tests/test_service.py::test_identical_booking_rejected PASSED                                           [ 50%]
+tests/test_service.py::test_consecutive_booking_allowed PASSED                                          [ 52%]
+tests/test_service.py::test_other_unit_bookable_while_first_is_busy PASSED                              [ 53%]
+tests/test_service.py::test_invalid_booking_rejected_and_not_stored[kwargs0] PASSED                     [ 55%]
+tests/test_service.py::test_invalid_booking_rejected_and_not_stored[kwargs1] PASSED                     [ 56%]
+tests/test_service.py::test_invalid_booking_rejected_and_not_stored[kwargs2] PASSED                     [ 58%]
+tests/test_service.py::test_invalid_booking_rejected_and_not_stored[kwargs3] PASSED                     [ 60%]
+tests/test_service.py::test_invalid_booking_rejected_and_not_stored[kwargs4] PASSED                     [ 61%]
+tests/test_service.py::test_invalid_booking_rejected_and_not_stored[kwargs5] PASSED                     [ 63%]
+tests/test_service.py::test_invalid_booking_rejected_and_not_stored[kwargs6] PASSED                     [ 64%]
+tests/test_service.py::test_past_date_rejected PASSED                                                   [ 66%]
+tests/test_service.py::test_too_long_rejected PASSED                                                    [ 67%]
+tests/test_service.py::test_exactly_8_hours_accepted PASSED                                             [ 69%]
+tests/test_service.py::test_too_far_ahead_rejected PASSED                                               [ 70%]
+tests/test_service.py::test_cancel_keeps_record_and_frees_slot PASSED                                   [ 72%]
+tests/test_service.py::test_cancel_twice_is_an_error PASSED                                             [ 73%]
+tests/test_service.py::test_cancel_unknown_id_is_an_error PASSED                                        [ 75%]
+tests/test_service.py::test_availability_blockers_and_free_units PASSED                                 [ 76%]
+tests/test_service.py::test_cancelled_reservation_does_not_block_availability PASSED                    [ 78%]
+tests/test_service.py::test_availability_and_booking_always_agree[09:00-10:00] PASSED                   [ 80%]
+tests/test_service.py::test_availability_and_booking_always_agree[09:30-10:30] PASSED                   [ 81%]
+tests/test_service.py::test_availability_and_booking_always_agree[10:00-11:00] PASSED                   [ 83%]
+tests/test_service.py::test_availability_and_booking_always_agree[10:15-10:45] PASSED                   [ 84%]
+tests/test_service.py::test_availability_and_booking_always_agree[10:30-11:30] PASSED                   [ 86%]
+tests/test_service.py::test_availability_and_booking_always_agree[11:00-12:00] PASSED                   [ 87%]
+tests/test_service.py::test_availability_validates_interval PASSED                                      [ 89%]
+tests/test_service.py::test_units_listed PASSED                                                         [ 90%]
+tests/test_service.py::test_init_twice_does_not_duplicate_units PASSED                                  [ 92%]
+tests/test_service.py::test_init_adds_missing_unit PASSED                                               [ 93%]
+tests/test_service.py::test_reset_without_confirmation_does_nothing PASSED                              [ 95%]
+tests/test_service.py::test_reset_deletes_all_reservations_and_keeps_units PASSED                       [ 96%]
+tests/test_service.py::test_reset_reseeds_deleted_units PASSED                                          [ 98%]
+tests/test_service.py::test_failed_booking_does_not_change_db PASSED                                    [100%]
+
+============================================= 65 passed in 4.87s =============================================
+PS C:\Users\melis\Calibrate>
+PS C:\Users\melis\Calibrate> $env:PYTHONPATH = "src"
+PS C:\Users\melis\Calibrate> $env:CALIBRATE_DB = "$env:TEMP\restart.db"
+PS C:\Users\melis\Calibrate> Remove-Item $env:CALIBRATE_DB -ErrorAction SilentlyContinue
+PS C:\Users\melis\Calibrate> $D = (Get-Date).AddDays(10).ToString("yyyy-MM-dd")
+PS C:\Users\melis\Calibrate>
+PS C:\Users\melis\Calibrate> python -m calibrate.cli init
+Base inicializada.
+PS C:\Users\melis\Calibrate> python -m calibrate.cli book --unit MIC-01 --requester "Ana Perez" --start "$D 10:00" --end "$D 11:00"
+Reserva creada: #1  MIC-01  2026-11-02 10:00 -> 2026-11-02 11:00  Ana Perez  [ACTIVE]
+PS C:\Users\melis\Calibrate> python -m calibrate.cli book --unit MIC-02 --requester "Luis Gomez" --start "$D 10:00" --end "$D 11:00"
+Reserva creada: #2  MIC-02  2026-11-02 10:00 -> 2026-11-02 11:00  Luis Gomez  [ACTIVE]
+PS C:\Users\melis\Calibrate> python -m calibrate.cli cancel --id 2
+Reserva cancelada: #2  MIC-02  2026-11-02 10:00 -> 2026-11-02 11:00  Luis Gomez  [CANCELLED]  cancelada: 2026-10-23 20:19:47
+PS C:\Users\melis\Calibrate> python -m calibrate.cli list
+#1  MIC-01  2026-11-02 10:00 -> 2026-11-02 11:00  Ana Perez  [ACTIVE]
+PS C:\Users\melis\Calibrate> python -m calibrate.cli list --all
+#1  MIC-01  2026-11-02 10:00 -> 2026-11-02 11:00  Ana Perez  [ACTIVE]
+#2  MIC-02  2026-11-02 10:00 -> 2026-11-02 11:00  Luis Gomez  [CANCELLED]  cancelada: 2026-10-23 20:19:47
+PS C:\Users\melis\Calibrate> python -m calibrate.cli availability --unit MIC-01 --start "$D 10:30" --end "$D 11:30"
+MIC-01 OCUPADA en ese horario. Reservas que la bloquean:
+  #1  MIC-01  2026-11-02 10:00 -> 2026-11-02 11:00  Ana Perez  [ACTIVE]
+PS C:\Users\melis\Calibrate> python -m calibrate.cli availability --unit MIC-02 --start "$D 10:30" --end "$D 11:30"
+MIC-02 LIBRE en ese horario.
+PS C:\Users\melis\Calibrate> python -m calibrate.cli book --unit MIC-01 --requester "Luis Gomez" --start "$D 10:30" --end "$D 11:30"
+Error: MIC-01 ya esta reservada en ese horario (reserva 1: 2026-11-02 10:00 a 2026-11-02 11:00).
+PS C:\Users\melis\Calibrate> python -m calibrate.cli book --unit MIC-02 --requester "Luis Gomez" --start "$D 10:00" --end "$D 11:00"
+Reserva creada: #3  MIC-02  2026-11-02 10:00 -> 2026-11-02 11:00  Luis Gomez  [ACTIVE]
+PS C:\Users\melis\Calibrate> python -m calibrate.cli cancel --id 2
+Error: La reserva 2 ya estabapython -m calibrate.cli reset
+Error: reset borra todas las reservas (activas y canceladas). Repetir con --yes para confirmar.
+PS C:\Users\melis\Calibrate> python -m calibrate.cli reset --yes
+Reservas borradas. Unidades restauradas desde inventory.json.
+PS C:\Users\melis\Calibrate> python -m calibrate.cli list --all
+No hay reservas.
+

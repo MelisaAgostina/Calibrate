@@ -48,7 +48,7 @@ Reservar unidades de equipos de laboratorio por franjas horarias, sin superposic
 - Éxito: código de salida 0.
 
 ### 1.6 Almacenamiento
-SQLite en `data/calibrate.db` (ignorado por git). Tablas: `units(id, name)` y `reservations(id, unit_id, requester, start, end, status, created_at, cancelled_at)`; `status` restringido a `ACTIVE` / `CANCELLED`.
+SQLite en `data/calibrate.db` (ignorado por git); la variable de entorno `CALIBRATE_DB` permite usar otro archivo. Tablas: `units(id, name)` y `reservations(id, unit_id, requester, start, end, status, created_at, cancelled_at)`; `status` restringido a `ACTIVE` / `CANCELLED`.
 
 ### 1.7 Criterios de aceptación
 1. Reservar MIC-01 de 10:00 a 11:00 en una fecha futura válida crea una reserva `ACTIVE`.
@@ -70,15 +70,64 @@ Marcados como supuestos en `docs/PLAN.md` sección 1: idioma español, zona fija
 
 ## 2. Solución
 
-_(pendiente)_
+### 2.1 Arquitectura
+```
+cli.py  ->  service.py  ->  domain.py       (reglas puras, sin I/O)
+                        ->  repository.py -> SQLite
+```
+- `domain.py`: validación de fechas, intervalos y solicitante, y la **única** función de choque `overlaps` (`a.inicio < b.fin and b.inicio < a.fin`). La usan `book` y la consulta de disponibilidad (`blocking`, `free_units`), así que no pueden contradecirse.
+- `repository.py`: SQL y transacciones. `book` toma el bloqueo de escritura (`BEGIN IMMEDIATE`) antes de comprobar y insertar.
+- `service.py`: casos de uso (`init`, `reset`, `book`, `cancel`, `list`, `blocking`, `free_units`). El reloj se inyecta (`now=`) para pruebas deterministas.
+- `cli.py`: capa fina de `argparse`; los errores van a stderr con código de salida 1.
+
+### 2.2 Instalación y uso
+```
+pip install -r requirements.txt
+python -m pytest
+
+# PowerShell, desde la raíz del repositorio
+$env:PYTHONPATH = "src"
+python -m calibrate.cli init
+python -m calibrate.cli units
+python -m calibrate.cli book --unit MIC-01 --requester "Ana Perez" --start "2030-06-10 10:00" --end "2030-06-10 11:00"
+python -m calibrate.cli availability --unit MIC-01 --start "2030-06-10 10:30" --end "2030-06-10 11:30"
+python -m calibrate.cli cancel --id 1
+python -m calibrate.cli list --all
+```
+Las fechas deben ser futuras y estar dentro de los 90 días; ajustar los ejemplos a la fecha actual.
+
+### 2.3 Dónde están los datos
+En `data/calibrate.db` (ignorado por git) o en el archivo indicado por `CALIBRATE_DB`. **`reset --yes` borra todas las reservas, activas y canceladas**; las unidades se conservan y se vuelven a sembrar desde `inventory.json`.
+
+### 2.4 Pruebas
+`python -m pytest` ejecuta 65 pruebas (`tests/test_domain.py`, `test_service.py`, `test_persistence.py`), incluidas dos que lanzan procesos separados de la CLI para comprobar la persistencia. No necesitan cuenta ni red.
+
+### 2.5 Evidencia
+En `docs/evidence/`: salida de `pytest`, versiones, el procedimiento de reinicio (esperado vs. observado) y la re-ejecución manual hecha por la autora (`human-run-melisa.txt`). Ver `docs/evidence/README.md`, que separa lo ejecutado por el agente de lo ejecutado a mano.
+
+### 2.6 Limitaciones
+- Un solo laboratorio y una sola zona horaria; sin autenticación.
+- Pensado para un usuario por vez en una máquina; la transacción evita reservas dobles entre procesos sobre el mismo archivo, pero no hay servidor ni acceso en red.
+- El inventario se edita en `inventory.json`, no desde la CLI; las unidades quitadas del archivo no se borran de la base.
+- Un inicio exactamente igual a "ahora" se acepta (solo se rechaza lo anterior).
+- Las pruebas de la CLI usan el reloj real (fecha de hoy + 10 días).
 
 ## 3. Preparación del agente
 
-_(pendiente)_
+- **Herramienta**: Claude Code `2.1.283` (salida de `claude --version`, ver `docs/evidence/versions.txt`). Modelo: `claude-sonnet-5-5`, según lo informa el contexto de la sesión (no es salida de un comando).
+- **`CLAUDE.md`** en la raíz: especificación primero, pruebas antes que código, intervalos semiabiertos, una sola función de choque, sin dependencias nuevas sin preguntar, sin secretos ni datos reales, el agente no hace commits, y actualizar `PROGRESS.md` después de cada tarea.
+- **`.claude/settings.json`**: permite sin preguntar `pytest` y git de solo lectura (`status`, `diff`, `log`, `show`, `branch`); pide confirmación para `git commit/push/add`, `rm`/`del` e instalaciones con `pip`.
+- **Adaptación específica con evidencia de uso**: la regla de `PROGRESS.md`. Su historial en git muestra una actualización por tarea (hecho / decisiones / siguiente).
+- **Contexto entregado al agente**: `docs/PLAN.md`, la especificación del README y las pruebas ya escritas.
+- **Contexto excluido**: transcripciones completas de chats, datos reales de estudiantes, credenciales.
+- **Aprobaciones realmente concedidas**: todas las aprobaciones fueron manuales, de manera que cada archivo generado en los 6 pasos fue revisado para constatar que cumplan con las funciones pedidas.
+- **Qué se revisó antes de aceptar**: se revisó: codigo fuente, tests, salidas en .txt, .gitignore, reglas.
 
 ## 4. Decisiones y episodios
 
-_(pendiente)_
+- Decisiones y supuestos: tabla en `docs/PLAN.md` sección 1 (lenguaje, SQLite, zona fija, intervalos semiabiertos, límites de 8 h y 90 días, transacción, `reset --yes` que re-siembra sin borrar unidades).
+- Cambios de especificación: commits aparte con el motivo en el mensaje (historial recuperable).
+- Episodios de delegación: _(pendiente: se redactan en `docs/episodes.md`, con casos reales)_
 
 <div align="center">
 <img width="450" height="450" alt="giphy" src="https://github.com/user-attachments/assets/8f7c4572-fde6-4d23-867d-177865747169" />

@@ -60,12 +60,12 @@ CLI -> Service (book / cancel / availability) -> Domain rules (pure functions) ;
 ## 5. Build order (each step = at least one commit)
 - [X] 0. `git init`, `.gitignore`, `CLAUDE.md`, settings, `PROGRESS.md`, README skeleton
 - [X] 1. Write the spec (README section 1) BEFORE any code -> commit "Initial spec"
-- [ ] 2. Failing tests (red)
-- [ ] 3. Domain rules (green)
-- [ ] 4. SQLite repository + persistence
-- [ ] 5. CLI + example input/output
-- [ ] 6. Run everything for real; save results in `docs/evidence/`
-- [ ] 7. Finish README, episodes, secrets check, repo access check, send email
+- [X] 2. Failing tests (red)
+- [X] 3. Domain rules (green)
+- [X] 4. SQLite repository + persistence
+- [X] 5. CLI + example input/output
+- [X] 6. Run everything for real; save results in `docs/evidence/`
+- [X] 7. Finish README, episodes, secrets check, repo access check, send email
 
 Spec changes later = separate commits with the reason in the message (that is the "recoverable evolution").
 

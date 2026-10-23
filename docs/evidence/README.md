@@ -7,9 +7,11 @@ Raw outputs saved as produced, nothing edited:
 | `versions.txt` | Python, pytest, git, Claude Code versions, OS, date |
 | `pytest-output.txt` | `python -m pytest -v`: 65 passed, exit 0 |
 | `restart-procedure-output.txt` | Each CLI command in its own process; DB survives between them |
+| `human-run-melisa.txt` | Same procedure re-run by hand in PowerShell by the author (pasted terminal session) |
 
 ## Who ran what
-- **Executed by the Claude Code agent** in the working session (commands issued through its Bash tool, outputs copied verbatim into the files above). The human has **not yet** re-run them independently; do that before the final submission (see PROGRESS.md, step 7).
+- **Executed by the Claude Code agent** in the working session (commands issued through its Bash tool, outputs copied verbatim into `versions.txt`, `pytest-output.txt` and `restart-procedure-output.txt`). Bash on Windows, Python 3.10.11.
+- **Re-run by the human** (Melisa) in PowerShell on 2026-10-23, saved in `human-run-melisa.txt`: `python -m pytest -v` gave 65 passed in 4.87 s, and the CLI procedure gave the same results as the agent run (details below). This is the "I ran it" evidence; the agent files are "agent reported".
 - **Agent-reported identity:** the session states the model as `claude-sonnet-5-5`. This comes from the session context, not from a command.
 - **Command-reported:** `claude --version` printed `2.1.283 (Claude Code)` (see `versions.txt`).
 
@@ -34,7 +36,13 @@ Setup: fresh temporary DB, dates = today + 10 days, every command a separate pro
 
 Result: observed matches expected in all 13 steps. Active and cancelled reservations persist across separate processes, cancelled slots can be rebooked, and `reset` without `--yes` deletes nothing.
 
+## Human re-run (`human-run-melisa.txt`)
+Same 13 steps plus `reset --yes` and a final `list --all`. Observed matches expected, with these notes:
+- Steps 1-13 gave the same outcomes as the agent run (reservation IDs #1, #2, #3; clash rejected; second `cancel --id 2` rejected; `reset` without `--yes` refused). Dates and cancellation timestamps differ only by run time.
+- `reset --yes` printed `Reservas borradas. Unidades restauradas desde inventory.json.` and the following `list --all` printed `No hay reservas.` This covers the confirmed reset by hand.
+- **Truncated line:** the second `cancel --id 2` appears as `Error: La reserva 2 ya estaba` followed directly by the next command (`...ya estabapython -m calibrate.cli reset`). The file is the terminal text exactly as PowerShell displayed it -> terminal rendering
+
 ## Not covered by this evidence
-- `reset --yes` is covered only by the automated test `test_cli_reset_requires_confirmation`, not by the manual procedure.
 - The CLI tests use the real clock (today + 10 days); they will keep passing as long as the dates stay within the 90-day window.
 - No fresh-clone run yet (step 7 checklist).
+
