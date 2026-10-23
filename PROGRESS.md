@@ -4,6 +4,7 @@
 - Step 0: repo skeleton (`.gitignore`, `CLAUDE.md`, `.claude/settings.json`, `PROGRESS.md`, README skeleton).
 - Step 1: spec written in `README.md` section 1 (rules R1-R15, commands, errors, storage, 10 acceptance criteria).
 - Step 2: failing tests (red) in `tests/test_domain.py`, `test_service.py`, `test_persistence.py`; `requirements.txt`, `pytest.ini`, `inventory.json`. `pytest` run: 3 collection errors (`No module named 'calibrate'`), as expected before any code.
+- Step 3: `src/calibrate/domain.py` (green): `tests/test_domain.py` 25 passed. Service and persistence tests still red (no service/repository yet).
 
 ## Decisions
 - See `docs/PLAN.md` section 1. `reset --yes` deletes all reservations and re-seeds missing units; it never deletes units.
@@ -14,4 +15,4 @@
 
 ## Next
 - Add `CALIBRATE_DB` to the spec (separate spec commit).
-- Step 3: domain rules (green) in `src/calibrate/domain.py`.
+- Step 4: SQLite repository + service (`repository.py`, `service.py`) to turn `test_service.py` and the service part of `test_persistence.py` green.

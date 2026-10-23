@@ -79,3 +79,9 @@ _(pendiente)_
 ## 4. Decisiones y episodios
 
 _(pendiente)_
+
+
+<div style="align-center">
+Gracias
+
+</div>
