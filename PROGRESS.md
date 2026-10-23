@@ -7,6 +7,7 @@
 - Step 3: `src/calibrate/domain.py` (green): `tests/test_domain.py` 25 passed. Service and persistence tests still red (no service/repository yet).
 - Step 4: `repository.py` + `service.py` (green). Full suite: 63 passed, 2 failed (the two CLI tests: `No module named calibrate.cli`, expected until step 5).
 - Step 5: `src/calibrate/cli.py` (green). Full suite: 65 passed. Manual demo session run (init, units, book ok/clash/consecutive, availability, cancel twice, list, list --all, reset without --yes); output not yet saved to `docs/evidence/`.
+- Step 6: evidence saved in `docs/evidence/` (`versions.txt`, `pytest-output.txt` 65 passed, `restart-procedure-output.txt`, `README.md` with expected vs observed, 13/13 match). Claude Code version from `claude --version`: 2.1.283.
 
 ## Decisions
 - See `docs/PLAN.md` section 1. `reset --yes` deletes all reservations and re-seeds missing units; it never deletes units.
@@ -18,4 +19,4 @@
 
 ## Next
 - Add `CALIBRATE_DB` to the spec (separate spec commit).
-- Step 6: run everything for real and save commands/outputs (pytest, demo session, restart procedure with expected vs observed) in `docs/evidence/`.
+- Step 7: finish README sections 2-4, write `docs/episodes.md` (3 real episodes) and `docs/decisions.md`, add `CALIBRATE_DB` to the spec (separate commit), secrets check, fresh-clone check, human re-runs the evidence commands, repo access, send email.
