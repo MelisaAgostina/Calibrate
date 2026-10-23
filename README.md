@@ -80,8 +80,9 @@ _(pendiente)_
 
 _(pendiente)_
 
-
 <div style="align-items: center">
 Gracias
+</div>
+<div style="align-items: center">
 <img width="450" height="450" alt="giphy" src="https://github.com/user-attachments/assets/8f7c4572-fde6-4d23-867d-177865747169" />
 </div>
