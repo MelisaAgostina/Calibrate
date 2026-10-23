@@ -58,8 +58,8 @@ CLI -> Service (book / cancel / availability) -> Domain rules (pure functions) ;
 - Keep real evidence in `docs/evidence/`: commands, versions, outputs, failures included. Separate "agent reported" from "I ran it".
 
 ## 5. Build order (each step = at least one commit)
-- [ ] 0. `git init`, `.gitignore`, `CLAUDE.md`, settings, `PROGRESS.md`, README skeleton
-- [ ] 1. Write the spec (README section 1) BEFORE any code -> commit "Initial spec"
+- [X] 0. `git init`, `.gitignore`, `CLAUDE.md`, settings, `PROGRESS.md`, README skeleton
+- [X] 1. Write the spec (README section 1) BEFORE any code -> commit "Initial spec"
 - [ ] 2. Failing tests (red)
 - [ ] 3. Domain rules (green)
 - [ ] 4. SQLite repository + persistence
