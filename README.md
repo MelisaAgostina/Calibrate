@@ -81,8 +81,8 @@ _(pendiente)_
 _(pendiente)_
 
 <div align="center">
-Gracias
+<img width="450" height="450" alt="giphy" src="https://github.com/user-attachments/assets/8f7c4572-fde6-4d23-867d-177865747169" />
 </div>
 <div align="center">
-<img width="450" height="450" alt="giphy" src="https://github.com/user-attachments/assets/8f7c4572-fde6-4d23-867d-177865747169" />
+Gracias
 </div>

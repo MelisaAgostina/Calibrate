@@ -6,6 +6,7 @@
 - Step 2: failing tests (red) in `tests/test_domain.py`, `test_service.py`, `test_persistence.py`; `requirements.txt`, `pytest.ini`, `inventory.json`. `pytest` run: 3 collection errors (`No module named 'calibrate'`), as expected before any code.
 - Step 3: `src/calibrate/domain.py` (green): `tests/test_domain.py` 25 passed. Service and persistence tests still red (no service/repository yet).
 - Step 4: `repository.py` + `service.py` (green). Full suite: 63 passed, 2 failed (the two CLI tests: `No module named calibrate.cli`, expected until step 5).
+- Step 5: `src/calibrate/cli.py` (green). Full suite: 65 passed. Manual demo session run (init, units, book ok/clash/consecutive, availability, cancel twice, list, list --all, reset without --yes); output not yet saved to `docs/evidence/`.
 
 ## Decisions
 - See `docs/PLAN.md` section 1. `reset --yes` deletes all reservations and re-seeds missing units; it never deletes units.
@@ -17,4 +18,4 @@
 
 ## Next
 - Add `CALIBRATE_DB` to the spec (separate spec commit).
-- Step 5: CLI (`cli.py`) + example input/output; makes the 2 CLI tests green.
+- Step 6: run everything for real and save commands/outputs (pytest, demo session, restart procedure with expected vs observed) in `docs/evidence/`.
