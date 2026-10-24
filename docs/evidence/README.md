@@ -7,6 +7,7 @@ Raw outputs saved as produced, nothing edited:
 | `versions.txt` | Python, pytest, git, Claude Code versions, OS, date |
 | `pytest-output.txt` | `python -m pytest -v`: 65 passed, exit 0 |
 | `restart-procedure-output.txt` | Each CLI command in its own process; DB survives between them |
+| `red-runs.txt` | Failing runs reproduced from git history: `303f661` (3 collection errors, tests written before code) and `21bd153` (63 passed, 2 failed, CLI not yet written). Produced by the agent in a temporary clone with `git checkout <commit>` + `python -m pytest -q`. |
 | `human-run-melisa.txt` | Same procedure re-run by hand in PowerShell by the author (pasted terminal session) |
 
 ## Who ran what
