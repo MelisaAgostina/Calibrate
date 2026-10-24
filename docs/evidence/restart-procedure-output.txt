@@ -1,0 +1,60 @@
+# Restart procedure: each command below is a separate Python process (run Fri Oct 23 20:08:25 AST 2026)
+# DB: temporary file; dates: 2026-11-02 (today + 10 days)
+
+$ python -m calibrate.cli init
+Base inicializada.
+[exit 0]
+
+$ python -m calibrate.cli book --unit MIC-01 --requester Ana Perez --start 2026-11-02 10:00 --end 2026-11-02 11:00
+Reserva creada: #1  MIC-01  2026-11-02 10:00 -> 2026-11-02 11:00  Ana Perez  [ACTIVE]
+[exit 0]
+
+$ python -m calibrate.cli book --unit MIC-02 --requester Luis Gomez --start 2026-11-02 10:00 --end 2026-11-02 11:00
+Reserva creada: #2  MIC-02  2026-11-02 10:00 -> 2026-11-02 11:00  Luis Gomez  [ACTIVE]
+[exit 0]
+
+$ python -m calibrate.cli cancel --id 2
+Reserva cancelada: #2  MIC-02  2026-11-02 10:00 -> 2026-11-02 11:00  Luis Gomez  [CANCELLED]  cancelada: 2026-10-23 20:08:27
+[exit 0]
+
+----- processes above have exited; new processes below -----
+
+$ python -m calibrate.cli list
+#1  MIC-01  2026-11-02 10:00 -> 2026-11-02 11:00  Ana Perez  [ACTIVE]
+[exit 0]
+
+$ python -m calibrate.cli list --all
+#1  MIC-01  2026-11-02 10:00 -> 2026-11-02 11:00  Ana Perez  [ACTIVE]
+#2  MIC-02  2026-11-02 10:00 -> 2026-11-02 11:00  Luis Gomez  [CANCELLED]  cancelada: 2026-10-23 20:08:27
+[exit 0]
+
+$ python -m calibrate.cli availability --unit MIC-01 --start 2026-11-02 10:30 --end 2026-11-02 11:30
+MIC-01 OCUPADA en ese horario. Reservas que la bloquean:
+  #1  MIC-01  2026-11-02 10:00 -> 2026-11-02 11:00  Ana Perez  [ACTIVE]
+[exit 0]
+
+$ python -m calibrate.cli availability --unit MIC-02 --start 2026-11-02 10:30 --end 2026-11-02 11:30
+MIC-02 LIBRE en ese horario.
+[exit 0]
+
+$ python -m calibrate.cli book --unit MIC-01 --requester Luis Gomez --start 2026-11-02 10:30 --end 2026-11-02 11:30
+Error: MIC-01 ya esta reservada en ese horario (reserva 1: 2026-11-02 10:00 a 2026-11-02 11:00).
+[exit 1]
+
+$ python -m calibrate.cli book --unit MIC-02 --requester Luis Gomez --start 2026-11-02 10:00 --end 2026-11-02 11:00
+Reserva creada: #3  MIC-02  2026-11-02 10:00 -> 2026-11-02 11:00  Luis Gomez  [ACTIVE]
+[exit 0]
+
+$ python -m calibrate.cli cancel --id 2
+Error: La reserva 2 ya estaba cancelada.
+[exit 1]
+
+$ python -m calibrate.cli reset
+Error: reset borra todas las reservas (activas y canceladas). Repetir con --yes para confirmar.
+[exit 1]
+
+$ python -m calibrate.cli list
+#1  MIC-01  2026-11-02 10:00 -> 2026-11-02 11:00  Ana Perez  [ACTIVE]
+#3  MIC-02  2026-11-02 10:00 -> 2026-11-02 11:00  Luis Gomez  [ACTIVE]
+[exit 0]
+

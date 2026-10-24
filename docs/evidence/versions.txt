@@ -1,0 +1,12 @@
+## python --version
+Python 3.10.11
+## python -m pytest --version
+pytest 9.1.1
+## git --version
+git version 2.44.0.windows.1
+## claude --version
+2.1.283 (Claude Code)
+## OS
+Windows-10-10.0.26200-SP0
+## date
+Fri Oct 23 20:07:44 AST 2026

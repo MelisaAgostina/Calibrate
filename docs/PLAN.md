@@ -32,22 +32,22 @@ CLI -> Service (book / cancel / availability) -> Domain rules (pure functions) ;
 - Commands: `init`, `reset --yes` (warns: deletes reservations), `units`, `availability`, `book`, `cancel`, `list`.
 
 ## 3. Required tests
-- [ ] Valid creation
-- [ ] Overlap rejected (10:30-11:30 vs 10:00-11:00)
-- [ ] Consecutive limits allowed (11:00-12:00)
-- [ ] MIC-02 bookable while MIC-01 is busy
-- [ ] Invalid inputs: unknown unit, "   " requester, 30 Feb, 25:00, start >= end, past date, too long, too far ahead
-- [ ] Cancel keeps record and frees the slot
-- [ ] Availability agrees with booking rules
-- [ ] Persistence: new service on the same DB still has active + cancelled reservations
-- [ ] Persistence via two separate CLI runs (manual or automatic procedure with expected vs observed)
-- [ ] Boundary: booking of exactly 8 h accepted, 8 h 1 min rejected
-- [ ] Boundary: start exactly 90 days ahead accepted, beyond rejected
-- [ ] Cancelling an already-cancelled reservation -> clear error, record unchanged
-- [ ] Cancelled slot can be rebooked (same unit, same times)
-- [ ] `init` run twice does not duplicate units; unit in `inventory.json` but missing in DB gets seeded
-- [ ] `reset` without `--yes` does nothing; with `--yes` deletes reservations as specified
-- [ ] Concurrency: second booking of the same slot is rejected even if attempted right after the first (transaction)
+- [X] Valid creation
+- [X] Overlap rejected (10:30-11:30 vs 10:00-11:00)
+- [X] Consecutive limits allowed (11:00-12:00)
+- [X] MIC-02 bookable while MIC-01 is busy
+- [X] Invalid inputs: unknown unit, "   " requester, 30 Feb, 25:00, start >= end, past date, too long, too far ahead
+- [X] Cancel keeps record and frees the slot
+- [X] Availability agrees with booking rules
+- [X] Persistence: new service on the same DB still has active + cancelled reservations
+- [X] Persistence via two separate CLI runs (manual or automatic procedure with expected vs observed)
+- [X] Boundary: booking of exactly 8 h accepted, 8 h 1 min rejected
+- [X] Boundary: start exactly 90 days ahead accepted, beyond rejected
+- [X] Cancelling an already-cancelled reservation -> clear error, record unchanged
+- [X] Cancelled slot can be rebooked (same unit, same times)
+- [X] `init` run twice does not duplicate units; unit in `inventory.json` but missing in DB gets seeded
+- [X] `reset` without `--yes` does nothing; with `--yes` deletes reservations as specified
+- [X] Concurrency: second booking of the same slot is rejected even if attempted right after the first (transaction)
 
 ## 4. Agent setup (Claude Code)
 - `CLAUDE.md` in repo root: spec first; tests before code; half-open intervals; no new dependencies without asking; no secrets or real student data; after every task update `PROGRESS.md` (done / decisions / next).
@@ -58,14 +58,14 @@ CLI -> Service (book / cancel / availability) -> Domain rules (pure functions) ;
 - Keep real evidence in `docs/evidence/`: commands, versions, outputs, failures included. Separate "agent reported" from "I ran it".
 
 ## 5. Build order (each step = at least one commit)
-- [ ] 0. `git init`, `.gitignore`, `CLAUDE.md`, settings, `PROGRESS.md`, README skeleton
-- [ ] 1. Write the spec (README section 1) BEFORE any code -> commit "Initial spec"
-- [ ] 2. Failing tests (red)
-- [ ] 3. Domain rules (green)
-- [ ] 4. SQLite repository + persistence
-- [ ] 5. CLI + example input/output
-- [ ] 6. Run everything for real; save results in `docs/evidence/`
-- [ ] 7. Finish README, episodes, secrets check, repo access check, send email
+- [X] 0. `git init`, `.gitignore`, `CLAUDE.md`, settings, `PROGRESS.md`, README skeleton
+- [X] 1. Write the spec (README section 1) BEFORE any code -> commit "Initial spec"
+- [X] 2. Failing tests (red)
+- [X] 3. Domain rules (green)
+- [X] 4. SQLite repository + persistence
+- [X] 5. CLI + example input/output
+- [X] 6. Run everything for real; save results in `docs/evidence/`
+- [X] 7. Finish README, episodes, secrets check, repo access check.
 
 Spec changes later = separate commits with the reason in the message (that is the "recoverable evolution").
 
