@@ -1,0 +1,62 @@
+# Red / partial runs reproduced from git history (run Sat Oct 24 20:06:46 AST 2026)
+# Method: clone of this repo, 'git checkout <commit>', 'python -m pytest -q'. Outputs unedited.
+
+==================================================
+## commit 303f661 TDD: tests rojos agregados: reglas, criterios de aceptacion, persistencia de la bd
+$ python -m pytest -q
+E   ModuleNotFoundError: No module named 'calibrate'
+_________________ ERROR collecting tests/test_persistence.py __________________
+ImportError while importing test module 'C:\Users\melis\AppData\Local\Temp\tmp.WJ5bBgkEYs\c\tests\test_persistence.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\..\..\Programs\Python\Python310\lib\importlib\__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests\test_persistence.py:7: in <module>
+    from calibrate.service import CalibrateService
+E   ModuleNotFoundError: No module named 'calibrate'
+___________________ ERROR collecting tests/test_service.py ____________________
+ImportError while importing test module 'C:\Users\melis\AppData\Local\Temp\tmp.WJ5bBgkEYs\c\tests\test_service.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\..\..\Programs\Python\Python310\lib\importlib\__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests\test_service.py:6: in <module>
+    from calibrate.domain import ValidationError
+E   ModuleNotFoundError: No module named 'calibrate'
+=========================== short test summary info ===========================
+ERROR tests/test_domain.py
+ERROR tests/test_persistence.py
+ERROR tests/test_service.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!
+3 errors in 0.59s
+[pytest exit: 2]
+
+==================================================
+## commit 21bd153 2 archivos añadidos: repository.py y service.py, 63/65 tests pasan, 2 errores son de tests de CLI, se arreglan en el siguiente paso
+$ python -m pytest -q
+E        +    where CompletedProcess(args=['C:\\Users\\melis\\AppData\\Local\\Programs\\Python\\Python310\\python.exe', '-m', 'calibrate.c...', stderr='C:\\Users\\melis\\AppData\\Local\\Programs\\Python\\Python310\\python.exe: No module named calibrate.cli\n') = run_cli(WindowsPath('C:/Users/melis/AppData/Local/Temp/pytest-of-melis/pytest-5/test_persistence_across_separa0/cli.db'), 'init')
+
+tests\test_persistence.py:59: AssertionError
+____________________ test_cli_reset_requires_confirmation _____________________
+
+tmp_path = WindowsPath('C:/Users/melis/AppData/Local/Temp/pytest-of-melis/pytest-5/test_cli_reset_requires_confir0')
+
+    def test_cli_reset_requires_confirmation(tmp_path):
+        db = tmp_path / "cli.db"
+        day = (datetime.now() + timedelta(days=10)).strftime("%Y-%m-%d")
+        run_cli(db, "init")
+        run_cli(db, "book", "--unit", "MIC-01", "--requester", "Ana Perez",
+                "--start", f"{day} 10:00", "--end", f"{day} 11:00")
+    
+        run_cli(db, "reset")                              # no --yes: nothing happens
+>       assert "Ana Perez" in run_cli(db, "list").stdout
+E       AssertionError: assert 'Ana Perez' in ''
+E        +  where '' = CompletedProcess(args=['C:\\Users\\melis\\AppData\\Local\\Programs\\Python\\Python310\\python.exe', '-m', 'calibrate.c...', stderr='C:\\Users\\melis\\AppData\\Local\\Programs\\Python\\Python310\\python.exe: No module named calibrate.cli\n').stdout
+E        +    where CompletedProcess(args=['C:\\Users\\melis\\AppData\\Local\\Programs\\Python\\Python310\\python.exe', '-m', 'calibrate.c...', stderr='C:\\Users\\melis\\AppData\\Local\\Programs\\Python\\Python310\\python.exe: No module named calibrate.cli\n') = run_cli(WindowsPath('C:/Users/melis/AppData/Local/Temp/pytest-of-melis/pytest-5/test_cli_reset_requires_confir0/cli.db'), 'list')
+
+tests\test_persistence.py:92: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_persistence.py::test_persistence_across_separate_cli_runs
+FAILED tests/test_persistence.py::test_cli_reset_requires_confirmation - Asse...
+2 failed, 63 passed in 1.96s
+[pytest exit: 1]

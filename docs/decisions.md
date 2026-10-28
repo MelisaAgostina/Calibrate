@@ -1,19 +1,21 @@
 # Decisiones
 
-Registro de decisiones con su origen. Las del plan inicial están en `docs/PLAN.md` sección 1; aquí van las tomadas o ajustadas durante la construcción.
+Registro de decisiones con su origen, motivo, alternativas y consecuencias. Las del plan inicial están en `docs/PLAN.md` sección 1; aquí van las tomadas o ajustadas durante la construcción.
 
-| Decisión | Origen | Motivo | Dónde queda |
-|---|---|---|---|
-| `reset --yes` borra todas las reservas (activas y canceladas) y vuelve a sembrar las unidades faltantes; nunca borra unidades | Humana (propuesta del agente, la autora pidió «reseed»); luego registrada en el plan | La base queda usable justo después de `reset`; reutiliza el sembrado de `init` | `docs/PLAN.md` §1, README 1.4 |
-| Se agregan al plan pruebas de límites (8 h, 90 días), cancelar dos veces, rebook de franja cancelada, `init` repetido, `reset` con y sin `--yes` | Agente propuso, humana aprobó | Cubren aristas que la lista original no probaba | `docs/PLAN.md` §3 |
-| Transacción `BEGIN IMMEDIATE` para comprobar y reservar | Agente propuso, humana aprobó | Evita que dos procesos reserven la misma franja | README R15, `repository.py` |
-| Se eliminó del plan la sección «Early actions» | Humana | Los commits los hace ella; el orden ya estaba en la sección 5 | `docs/PLAN.md` |
-| `availability` sin `--unit` lista unidades libres; con `--unit`, indica las reservas que la bloquean | Agente decidió, humana aprobó | El plan no lo fijaba | README 1.4 |
-| `list` muestra activas; `--all` agrega canceladas | Agente decidió, humana aprobó | El plan no lo fijaba | README 1.4 |
-| El solicitante se guarda sin espacios en los extremos | Agente decidió, humana aprobó | Evita duplicados visuales; `"   "` sigue siendo inválido | README R11 |
-| Un solo tipo de error de usuario (`ValidationError`) para todo | Agente decidió (definido por las pruebas), humana aprobó | La CLI solo necesita un mensaje y un código de salida | `domain.py`, `cli.py` |
-| El choque se calcula en Python con `domain.overlaps`, no en SQL | Agente decidió | Una sola función de choque, como pide el plan | `service.py` |
-| El esquema se crea en cada conexión (`CREATE TABLE IF NOT EXISTS`) | Agente decidió | `list` y los servicios funcionan aunque no se haya corrido `init` | `repository.py` |
-| `CALIBRATE_DB` selecciona el archivo de base de datos | Agente propuso (lo necesitan las pruebas de la CLI), humana aprobó | Probar sin tocar `data/calibrate.db` | README 1.6 |
-| Inicio exactamente igual a «ahora» se acepta | Agente decidió; humana aprobó | La especificación solo rechaza lo anterior a ahora; sin prueba propia | README 2.6 |
-| Las pruebas de la CLI usan el reloj real (hoy + 10 días) | Agente decidió, señalado como limitación | La CLI no tiene reloj inyectable | README 2.6 |
+| Decisión | Origen | Motivo | Alternativas | Consecuencias | Dónde queda |
+|---|---|---|---|---|---|
+| `reset --yes` borra todas las reservas (activas y canceladas) y vuelve a sembrar las unidades faltantes; nunca borra unidades | Humana (la autora pidió re-sembrar); registrada en el plan | La base queda usable justo después de `reset`; reutiliza el sembrado de `init` | (a) borrar también las unidades y exigir `init`; (b) no re-sembrar | Un `reset` accidental pierde todo el historial: por eso exige `--yes` y está advertido en el README. Unidades quitadas del inventario nunca desaparecen de la base | `docs/PLAN.md` §1, README 1.4 y 2.3 |
+| Se agregan al plan pruebas de límites (8 h, 90 días), cancelar dos veces, rebook de franja cancelada, `init` repetido, `reset` con y sin `--yes` | Agente propuso, humana aprobó | Cubren aristas que la lista original no probaba | Quedarse con la lista original | Más pruebas que mantener (65 en total) | `docs/PLAN.md` §3 |
+| Transacción `BEGIN IMMEDIATE` para comprobar y reservar | Agente propuso, humana aprobó | Evita que dos procesos reserven la misma franja | (a) comprobar y luego insertar sin bloqueo; (b) restricción en SQL | Los escritores se serializan (aceptable para un laboratorio). Sin servidor ni concurrencia distribuida, que están fuera de alcance | README R15, `repository.py` |
+| Se eliminó del plan la sección «Early actions» | Humana | Los commits los hace ella; el orden ya estaba en la sección 5 | Dejarla | Ninguna | `docs/PLAN.md` |
+| `availability` sin `--unit` lista unidades libres; con `--unit`, indica las reservas que la bloquean | Agente decidió, humana aprobó | El plan no lo fijaba | Exigir siempre `--unit` | Dos comportamientos en un comando; ambos usan la misma regla de choque | README 1.4 |
+| `list` muestra activas; `--all` agrega canceladas | Agente decidió, humana aprobó | El plan no lo fijaba | Mostrar todo siempre | El historial existe pero hay que pedirlo con `--all` | README 1.4 |
+| El solicitante se guarda sin espacios en los extremos | Agente decidió, humana aprobó | Evita duplicados visuales; `"   "` sigue siendo inválido | Guardarlo tal cual | `" Ana "` y `"Ana"` quedan iguales | README R11 |
+| Un solo tipo de error de usuario (`ValidationError`) para todo | Agente decidió (definido por las pruebas), humana aprobó | La CLI solo necesita un mensaje y un código de salida | Excepciones distintas (no encontrado, choque, formato) | No se distingue el tipo de error por código; solo por mensaje | `domain.py`, `cli.py` |
+| El choque se calcula en Python con `domain.overlaps`, no en SQL | Agente decidió | Una sola función de choque, como pide el plan; reserva y disponibilidad no pueden contradecirse | Consulta SQL con `WHERE start < ? AND end > ?` | Se leen las reservas activas de la unidad; no escala a muchas reservas, pero es suficiente aquí | `service.py` |
+| El esquema se crea en cada conexión (`CREATE TABLE IF NOT EXISTS`) | Agente decidió | `list` y los servicios funcionan aunque no se haya corrido `init` | Exigir `init` antes de todo | Un pequeño costo por conexión; no hay migraciones | `repository.py` |
+| `CALIBRATE_DB` selecciona el archivo de base de datos | Agente propuso (lo necesitan las pruebas de la CLI), humana aprobó | Probar sin tocar `data/calibrate.db` | Argumento `--db` en cada comando | Configuración por variable de entorno; el cambio de especificación quedó dentro de un commit de evidencia (ver README 1.10) | README 1.6 |
+| Inicio exactamente igual a «ahora» se acepta | Agente decidió; humana aprobó | La especificación solo rechaza lo anterior a ahora | Rechazarlo | Sin prueba propia (declarado como pendiente) | README 2.6 |
+| Las pruebas de la CLI usan el reloj real (hoy + 10 días) | Agente decidió, señalado como limitación | La CLI no tiene reloj inyectable | Inyectar el reloj por variable de entorno | Dependen de la fecha de ejecución y de la ventana de 90 días | README 2.6 |
+| El inventario usa los nombres del enunciado (por ejemplo «Microscopio digital» para MIC-01 y MIC-02) | Agente corrigió tras la verificación contra el enunciado, humana pidió el arreglo | El enunciado dice que el inventario ya está definido | Nombres propios («Microscopio 1») | Bases ya creadas conservan los nombres viejos, porque la carga solo agrega unidades que faltan | `inventory.json` |
+| `pytest` fijado en `requirements.txt` (`pytest==9.1.1`) | Agente propuso, humana aprobó | El enunciado pide versiones y archivos de bloqueo cuando corresponda | `pytest` sin versión | Instalar otra versión requiere editar el archivo | `requirements.txt` |

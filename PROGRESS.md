@@ -10,6 +10,7 @@
 - Step 6: evidence saved in `docs/evidence/` (`versions.txt`, `pytest-output.txt` 65 passed, `restart-procedure-output.txt`, `README.md` with expected vs observed, 13/13 match). Claude Code version from `claude --version`: 2.1.283.
 - Evidence updated with the human re-run (`docs/evidence/human-run-melisa.txt`, 65 passed, CLI procedure matched; one error message truncated by the paste). README sections 2-3 written; `CALIBRATE_DB` added to spec 1.6 (spec change: commit separately).
 - Step 7 (partial): `docs/episodes.md` and `docs/decisions.md` drafted (fields marked [confirmar] are for the human); secrets scan clean; fresh clone of HEAD `4067a86`: 65 passed.
+- Compliance review against `tp.pdf` (course assignment) and fixes: `inventory.json` names as in the PDF, `pytest==9.1.1` pinned, README 1.1 (problem), 1.10 (spec history), 2.2 (prerequisites, sample output, reset), pending items, model function and external config in section 3, `docs/decisions.md` with alternatives and consequences, `docs/evidence/red-runs.txt`. Model-choice reason left for the human.
 
 ## Decisions
 - See `docs/PLAN.md` section 1. `reset --yes` deletes all reservations and re-seeds missing units; it never deletes units.
