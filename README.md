@@ -64,8 +64,24 @@ SQLite en `data/calibrate.db` (ignorado por git); la variable de entorno `CALIBR
 9. Cancelar dos veces la misma reserva, o un ID inexistente, da error.
 10. `init` repetido no duplica unidades; `reset` sin `--yes` no borra nada.
 
-### 1.8 Fuera de alcance
-Usuarios concurrentes en máquinas distintas, autenticación, varias zonas horarias, administración del inventario desde la CLI, reservas recurrentes.
+**Verificación automatizada de cada criterio**
+
+| Criterio | Prueba que lo verifica |
+|---|---|
+| 1 | [`tests/test_service.py`](tests/test_service.py): `test_valid_booking_is_active` |
+| 2 | `test_service.py`: `test_overlapping_booking_rejected`, `test_identical_booking_rejected`; [`tests/test_domain.py`](tests/test_domain.py): `test_overlap_partial`, `test_overlap_contained_and_identical` |
+| 3 | `test_service.py`: `test_consecutive_booking_allowed`; `test_domain.py`: `test_consecutive_intervals_do_not_overlap` |
+| 4 | `test_service.py`: `test_other_unit_bookable_while_first_is_busy` |
+| 5 | `test_service.py`: `test_invalid_booking_rejected_and_not_stored` (unidad, solicitante, 30 feb, hora 25, inicio >= fin), `test_past_date_rejected`, `test_too_long_rejected`, `test_too_far_ahead_rejected`; `test_domain.py`: `test_parse_invalid_datetime`, `test_blank_requester_rejected` y los límites de 8 h y 90 días |
+| 6 | `test_service.py`: `test_cancel_keeps_record_and_frees_slot`, `test_cancelled_reservation_does_not_block_availability` |
+| 7 | `test_service.py`: `test_availability_and_booking_always_agree`, `test_availability_blockers_and_free_units` |
+| 8 | [`tests/test_persistence.py`](tests/test_persistence.py): `test_new_service_on_same_db_sees_active_and_cancelled`, `test_booked_slot_still_blocks_after_restart`, `test_persistence_across_separate_cli_runs` (procesos separados) |
+| 9 | `test_service.py`: `test_cancel_twice_is_an_error`, `test_cancel_unknown_id_is_an_error` |
+| 10 | `test_service.py`: `test_init_twice_does_not_duplicate_units`, `test_reset_without_confirmation_does_nothing`; `test_persistence.py`: `test_cli_reset_requires_confirmation` |
+
+### 1.8 Alcance
+- **Dentro del alcance:** consultar disponibilidad por unidad e intervalo; crear una reserva (una unidad, un solicitante ficticio, inicio y fin); cancelar conservando identificador y datos, y liberar el intervalo; persistir reservas y estados entre ejecuciones; reiniciar los datos de forma explícita; interfaz de consola.
+- **Fuera de alcance:** usuarios concurrentes en máquinas distintas, autenticación y roles, notificaciones, pagos, integraciones externas, despliegue, interfaz gráfica, varias zonas horarias, administración del inventario desde la CLI, reservas recurrentes o de varias unidades.
 
 ### 1.9 Supuestos
 Marcados como supuestos en `docs/PLAN.md` sección 1: idioma español, zona fija, límites de 8 h y 90 días. Se cambian solo con un commit de especificación aparte que explique el motivo.
@@ -74,10 +90,30 @@ Marcados como supuestos en `docs/PLAN.md` sección 1: idioma español, zona fija
 - `62e4191` («Spec inicial»): versión inicial, reglas R1-R15, comandos y criterios de aceptación.
 - `4067a86`: se agregó a 1.6 la variable `CALIBRATE_DB`. Motivo: las pruebas de la CLI necesitan una base temporal sin tocar `data/calibrate.db`. Este cambio quedó dentro de un commit de evidencia, sin mención en su mensaje; se declara aquí para que sea recuperable.
 - Cambio posterior a `9610f20`: 1.1 pasó a incluir el problema de negocio, que el enunciado pide y la versión inicial no tenía. No cambia ninguna regla.
+- Mismo cambio posterior: 1.7 agrega la tabla criterio → prueba, y 1.8 pasa a listar también lo que está dentro del alcance. No cambian reglas ni comportamiento.
 
 ## 2. Solución
 
-### 2.1 Arquitectura
+### 2.1 Estructura y arquitectura
+```
+.
+├── README.md             # Especificación, solución, preparación del agente, decisiones
+├── CLAUDE.md             # Reglas que sigue el agente (versionado)
+├── PROGRESS.md           # Bitácora: hecho / decisiones / siguiente
+├── inventory.json        # Inventario inicial de las 5 unidades
+├── requirements.txt      # pytest==9.1.1
+├── pytest.ini            # pythonpath = src
+├── .claude/settings.json # Permisos del agente
+├── src/calibrate/        # domain.py, repository.py, service.py, cli.py
+├── tests/                # test_domain.py, test_service.py, test_persistence.py (65 pruebas)
+└── docs/
+    ├── PLAN.md           # Plan y decisiones iniciales
+    ├── decisions.md      # Decisiones con alternativas y consecuencias
+    ├── episodes.md       # Tres episodios de delegación
+    └── evidence/         # Salidas reales de pruebas y procedimientos
+```
+
+Flujo entre capas:
 ```
 cli.py  ->  service.py  ->  domain.py       (reglas puras, sin I/O)
                         ->  repository.py -> SQLite
@@ -133,6 +169,18 @@ En `data/calibrate.db` (ignorado por git) o en el archivo indicado por `CALIBRAT
 ### 2.5 Evidencia
 En `docs/evidence/`: salida de `pytest`, versiones, las corridas en rojo reproducidas desde el historial de git (`red-runs.txt`: 3 errores de colección y 63 pasaron / 2 fallaron), el procedimiento de reinicio (esperado vs. observado) y la re-ejecución manual hecha por la autora (`human-run-melisa.txt`). Ver `docs/evidence/README.md`, que separa lo ejecutado por el agente de lo ejecutado a mano.
 
+**Informado por el agente vs. comprobado realmente**
+
+| Comprobación | Informado por el agente | Ejecutado realmente |
+|---|---|---|
+| Suite de pruebas | 65 pasaron | Agente (Bash): 65 pasaron, `docs/evidence/pytest-output.txt`. Autora (PowerShell): `python -m pytest -v` → 65 pasaron en 4.87 s, `docs/evidence/human-run-melisa.txt` |
+| Persistencia entre procesos | Procedimiento de 13 pasos, 13/13 coinciden | Agente: `restart-procedure-output.txt`. Autora: repitió los mismos comandos y obtuvo los mismos resultados, más `reset --yes` |
+| Corridas en rojo (pruebas antes del código) | Descritas en `PROGRESS.md` y los episodios | Reproducidas con `git checkout` de `303f661` y `21bd153`: `docs/evidence/red-runs.txt` |
+| Clon limpio del repositorio | 65 pasaron | Solo el agente, con el pytest ya instalado; la autora no lo repitió |
+| Entorno virtual nuevo con `pip install -r requirements.txt` | — | **No ejecutado** |
+| Modelo | `claude-sonnet-5-5` | No es salida de un comando (lo informa el contexto de la sesión) |
+| Versión de Claude Code | — | `claude --version` → `2.1.283`, `docs/evidence/versions.txt` |
+
 ### 2.6 Limitaciones
 - Un solo laboratorio y una sola zona horaria; sin autenticación.
 - Pensado para un usuario por vez en una máquina; la transacción evita reservas dobles entre procesos sobre el mismo archivo, pero no hay servidor ni acceso en red.
@@ -144,6 +192,7 @@ En `docs/evidence/`: salida de `pytest`, versiones, las corridas en rojo reprodu
 - Instalación probada en un entorno virtual nuevo con `pip install -r requirements.txt`: no ejecutada todavía (el clon limpio se probó con el pytest ya instalado de la máquina).
 - Probado solo en Windows 11 con Python 3.10.11.
 - Sin prueba propia para «inicio exactamente igual a ahora».
+- Sin prueba automatizada de concurrencia real (dos procesos reservando a la vez): la transacción `BEGIN IMMEDIATE` está implementada, pero solo se comprueba que una reserva rechazada no modifica la base (`test_failed_booking_does_not_change_db`).
 
 ## 3. Preparación del agente
 
@@ -157,6 +206,13 @@ En `docs/evidence/`: salida de `pytest`, versiones, las corridas en rojo reprodu
 - **`CLAUDE.md`** en la raíz: especificación primero, pruebas antes que código, intervalos semiabiertos, una sola función de choque, sin dependencias nuevas sin preguntar, sin secretos ni datos reales, el agente no hace commits, y actualizar `PROGRESS.md` después de cada tarea.
 - **`.claude/settings.json`**: permite sin preguntar `pytest` y git de solo lectura (`status`, `diff`, `log`, `show`, `branch`); pide confirmación para `git commit/push/add`, `rm`/`del` e instalaciones con `pip`.
 - **Adaptación específica con evidencia de uso**: la regla de `PROGRESS.md`. Su historial en git muestra una actualización por tarea (hecho / decisiones / siguiente).
+- **Otras adaptaciones comprobables en el código** (cada una con su prueba):
+  1. **Intervalos semiabiertos**: [`src/calibrate/domain.py:13`](src/calibrate/domain.py#L13), `overlaps` usa `a_start < b_end and b_start < a_end`, de modo que 10:00-11:00 y 11:00-12:00 no chocan (`test_consecutive_intervals_do_not_overlap`).
+  2. **Fechas de calendario estrictas**: [`domain.py:21`](src/calibrate/domain.py#L21), `parse_datetime` usa `strptime`, que rechaza el 30 de febrero, la hora 25 y los minutos 60 en vez de «corregirlos» (`test_parse_invalid_datetime`).
+  3. **Reloj inyectable**: [`service.py:18`](src/calibrate/service.py#L18), `CalibrateService(..., now=...)`; con eso las pruebas de «fecha pasada» y «90 días» son deterministas.
+  4. **Una sola función de choque**: la usan `book`, `blocking` y `free_units`, así que disponibilidad y reserva no pueden contradecirse (`test_availability_and_booking_always_agree`).
+  5. **Comprobar y reservar en una transacción**: [`repository.py:102-111`](src/calibrate/repository.py#L102), `BEGIN IMMEDIATE` para las escrituras.
+- **Controles humanos previstos y aplicados**: el agente no hace commits (regla de `CLAUDE.md`; todos los commits son de la autora); las decisiones que el agente tomó por su cuenta se revisaron antes de commitear (episodios 1 y 2); `pip install` y `git add/commit/push` requieren confirmación en `.claude/settings.json`.
 - **Contexto entregado al agente**: `docs/PLAN.md`, la especificación del README y las pruebas ya escritas.
 - **Contexto excluido**: transcripciones completas de chats, datos reales de estudiantes, credenciales.
 - **Aprobaciones realmente concedidas**: las aprobaciones fueron manuales para lo referedo a desarrollo de código e instalaciones, pytest y funciones de git de lectura aprobadas automáticamente, commit/push/pull manual.
@@ -164,6 +220,30 @@ En `docs/evidence/`: salida de `pytest`, versiones, las corridas en rojo reprodu
 
 ## 4. Decisiones y episodios
 
+### 4.1 Decisiones significativas (resumen)
+El detalle completo, con origen y consecuencias, está en `docs/decisions.md`.
+
+| Decisión | Alternativas descartadas | Motivo y consecuencias |
+|---|---|---|
+| Python 3 + `sqlite3` + `argparse` + `pytest`, interfaz de consola | API web, otro lenguaje | Sin dependencias de producción y fácil de reproducir. Sin interfaz gráfica |
+| SQLite en `data/calibrate.db` | Archivo JSON, servidor de base de datos | Persistencia en un solo archivo y transacciones reales. No sirve para varios equipos en red |
+| Intervalos `[inicio, fin)` | Intervalos cerrados | Los límites consecutivos no chocan, como pide el enunciado |
+| Rechazar fechas pasadas con reloj inyectable | Aceptar cualquier fecha para no depender del reloj | Respeta la regla de negocio y las pruebas siguen siendo deterministas. Las pruebas de la CLI usan el reloj real (hoy + 10 días) |
+| Una sola zona horaria (America/Argentina/Buenos_Aires), sin conversión | Guardar en UTC y convertir | Más simple; no sirve para varios sitios |
+| Límites de 8 h y 90 días | Sin límites | Evita reservas absurdas; son supuestos declarados, no del enunciado |
+| `reset --yes` borra reservas y re-siembra unidades | Borrar también las unidades | La base queda usable tras reiniciar; un reset accidental pierde el historial, por eso exige `--yes` |
+| Comprobar el choque en Python con `domain.overlaps` | Consulta SQL con `WHERE` | Una sola función de choque; no escala a muchas reservas |
+
+### 4.2 Resumen de los tres episodios de delegación
+El texto completo de cada episodio (objetivo, contexto, acción del agente, decisión humana, enlaces) está en `docs/episodes.md`.
+
+| Episodio | Decisión humana | Evidencia |
+|---|---|---|
+| 1. Redactar la especificación (paso 1) | Aceptó las cuatro decisiones que el agente tomó por su cuenta | Commit `62e4191`; README sección 1 |
+| 2. Pruebas primero para el choque de intervalos (pasos 2 y 3) | Aceptó tras revisar; las pruebas en rojo se commitearon antes del código | Commits `303f661` y `1420714`; `docs/evidence/red-runs.txt` |
+| 3. Persistencia y cancelación; corrección de una afirmación del agente (pasos 4 a 6) | Aceptó el código tras repetirlo a mano; rechazó la causa que el agente afirmó sin comprobar | Commits `21bd153`, `6bd0e76`, `4067a86`; `docs/evidence/README.md` |
+
+### 4.3 Más detalle
 - Decisiones y supuestos: tabla en `docs/PLAN.md` sección 1 (lenguaje, SQLite, zona fija, intervalos semiabiertos, límites de 8 h y 90 días, transacción, `reset --yes` que re-siembra sin borrar unidades).
 - Cambios de especificación: commits aparte con el motivo en el mensaje (historial recuperable).
 - Registro completo de decisiones con su origen (humana o del agente): `docs/decisions.md`.
