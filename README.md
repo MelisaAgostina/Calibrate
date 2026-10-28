@@ -189,8 +189,6 @@ En `docs/evidence/`: salida de `pytest`, versiones, las corridas en rojo reprodu
 - Las pruebas de la CLI usan el reloj real (fecha de hoy + 10 días).
 
 **Pendientes**
-- Instalación probada en un entorno virtual nuevo con `pip install -r requirements.txt`: no ejecutada todavía (el clon limpio se probó con el pytest ya instalado de la máquina).
-- Probado solo en Windows 11 con Python 3.10.11.
 - Sin prueba propia para «inicio exactamente igual a ahora».
 - Sin prueba automatizada de concurrencia real (dos procesos reservando a la vez): la transacción `BEGIN IMMEDIATE` está implementada, pero solo se comprueba que una reserva rechazada no modifica la base (`test_failed_booking_does_not_change_db`).
 
